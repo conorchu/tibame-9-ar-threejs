@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <title>羽球＋1｜Tibame 9張圖 AR 導引</title>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+          "mindar-image-three": "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
+        }
+      }
+    </script>
+
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+
+  <body>
+    <main id="ar-container" aria-label="Tibame AR 導引相機畫面"></main>
+
+    <section class="hud" aria-live="polite">
+      <div class="brand">羽球＋1 · Tibame AR 導引</div>
+
+      <div class="guide-card">
+        <span id="guide-state" class="state state--scanning">等待掃描</span>
+        <h1 id="guide-title">將鏡頭對準第 1 張地標</h1>
+        <p id="guide-message">
+          辨識成功後，會出現白色浮空路線點點與方向箭頭。
+        </p>
+      </div>
+
+      <button id="start-button" type="button">開啟 AR 相機</button>
+
+      <p id="hint" class="hint">
+        請從 MindAR Compiler 上傳的第 1 張照片開始測試。
+      </p>
+    </section>
+
+    <section id="error-card" class="error-card" hidden>
+      <strong>無法啟動 AR</strong>
+      <p>
+        請確認使用 HTTPS、已允許相機權限，而且
+        <code>assets/tibame-9.mind</code> 已放入專案。
+      </p>
+    </section>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

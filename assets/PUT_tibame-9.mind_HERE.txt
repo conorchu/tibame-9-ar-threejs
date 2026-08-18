@@ -1,0 +1,5 @@
+請把 MindAR Compiler 用 9 張照片產出的檔案改名成：
+
+tibame-9.mind
+
+然後放在這個 assets 資料夾。
