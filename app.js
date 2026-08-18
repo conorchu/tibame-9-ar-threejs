@@ -11,7 +11,7 @@ const errorCard = document.querySelector("#error-card");
 
 const mindarThree = new MindARThree({
   container: document.querySelector("#ar-container"),
-  imageTargetSrc: "./assets/tibame-9.mind",
+  imageTargetSrc: "./assets/tibame.mind",
   uiLoading: "no",
   uiScanning: "no",
   uiError: "no",
