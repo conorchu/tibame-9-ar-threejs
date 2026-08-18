@@ -35,100 +35,167 @@ function setGuideText(step) {
 }
 
 function createDot() {
-  const geometry = new THREE.SphereGeometry(0.018, 16, 16);
+  const geometry = new THREE.SphereGeometry(
+    0.018,
+    20,
+    20
+  );
 
   const material = new THREE.MeshBasicMaterial({
-    color: 0xffffff,
+    color: 0x2f80ed,
     transparent: true,
-    opacity: 0.9,
+    opacity: 0.95,
   });
 
-  return new THREE.Mesh(geometry, material);
+  return new THREE.Mesh(
+    geometry,
+    material
+  );
 }
 
+//箭頭改成「白底＋藍框」
 function createChevron() {
-  const shape = new THREE.Shape();
+  const group = new THREE.Group();
 
-  shape.moveTo(-0.09, 0.06);
-  shape.lineTo(-0.02, 0);
-  shape.lineTo(-0.09, -0.06);
+  // 箭頭外框
+  const outerShape = new THREE.Shape();
 
-  shape.lineTo(-0.04, -0.06);
-  shape.lineTo(0.06, 0);
-  shape.lineTo(-0.04, 0.06);
+  outerShape.moveTo(-0.12, 0.09);
+  outerShape.lineTo(-0.025, 0);
+  outerShape.lineTo(-0.12, -0.09);
+  outerShape.lineTo(-0.055, -0.09);
+  outerShape.lineTo(0.07, 0);
+  outerShape.lineTo(-0.055, 0.09);
+  outerShape.closePath();
 
-  shape.closePath();
+  const outerGeometry =
+    new THREE.ShapeGeometry(
+      outerShape
+    );
 
-  const geometry = new THREE.ShapeGeometry(shape);
+  const outerMaterial =
+    new THREE.MeshBasicMaterial({
+      color: 0x2f80ed,
+      side: THREE.DoubleSide,
+    });
 
-  const material = new THREE.MeshBasicMaterial({
-    color: 0xffffff,
-    transparent: true,
-    opacity: 1,
-    side: THREE.DoubleSide,
-  });
+  const outerArrow =
+    new THREE.Mesh(
+      outerGeometry,
+      outerMaterial
+    );
 
-  return new THREE.Mesh(geometry, material);
+  group.add(outerArrow);
+
+  // 白色內層
+  const innerShape = new THREE.Shape();
+
+  innerShape.moveTo(-0.095, 0.06);
+  innerShape.lineTo(-0.025, 0);
+  innerShape.lineTo(-0.095, -0.06);
+  innerShape.lineTo(-0.055, -0.06);
+  innerShape.lineTo(0.035, 0);
+  innerShape.lineTo(-0.055, 0.06);
+  innerShape.closePath();
+
+  const innerGeometry =
+    new THREE.ShapeGeometry(
+      innerShape
+    );
+
+  const innerMaterial =
+    new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      side: THREE.DoubleSide,
+    });
+
+  const innerArrow =
+    new THREE.Mesh(
+      innerGeometry,
+      innerMaterial
+    );
+
+  innerArrow.position.z = 0.002;
+
+  group.add(innerArrow);
+
+  return group;
 }
 
+//重新排列點點 與 3個箭頭
 function createGuide(step) {
   const group = new THREE.Group();
 
   const dots = [];
 
+  // 路線點點
   const dotPositions = [
-    [0, -0.55, 0.05],
-    [0, -0.43, 0.05],
-    [0, -0.31, 0.05],
-    [0, -0.19, 0.05],
-    [0, -0.07, 0.05],
+    [0, -0.62, 0.04],
+    [0, -0.50, 0.04],
+    [0, -0.38, 0.04],
+    [0, -0.26, 0.04],
+    [0, -0.14, 0.04],
   ];
 
-  dotPositions.forEach((position) => {
-    const dot = createDot();
+  dotPositions.forEach(
+    (position, index) => {
 
-    dot.position.set(
-      position[0],
-      position[1],
-      position[2]
-    );
+      const dot = createDot();
 
-    group.add(dot);
+      dot.position.set(
+        position[0],
+        position[1],
+        position[2]
+      );
 
-    dots.push(dot);
-  });
+      group.add(dot);
+      dots.push(dot);
+    }
+  );
 
-  const arrowGroup = new THREE.Group();
+  // =========================
+  // 三個大型箭頭
+  // =========================
+
+  const arrowGroup =
+    new THREE.Group();
 
   for (let i = 0; i < 3; i++) {
-    const arrow = createChevron();
+    const arrow =
+      createChevron();
 
-    arrow.position.x = i * 0.11;
+    arrow.position.x =
+      i * 0.20;
 
     arrowGroup.add(arrow);
   }
 
+  // 讓三個箭頭置中
   arrowGroup.position.set(
-    -0.11,
-    0.12,
+    -0.20,
+    0.08,
     0.07
   );
 
+  // route.js 控制方向
   const rotation =
     THREE.MathUtils.degToRad(
       step.arrowRotationZ || 0
     );
 
-  arrowGroup.rotation.z = rotation;
+  arrowGroup.rotation.z =
+    rotation;
 
   group.add(arrowGroup);
 
-  group.scale.setScalar(0.72);
+  // 整組大小
+  group.scale.setScalar(0.85);
 
   group.userData = {
     dots,
     arrowGroup,
-    baseArrowY: arrowGroup.position.y,
+    baseArrowY:
+      arrowGroup.position.y,
   };
 
   return group;
