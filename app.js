@@ -235,14 +235,12 @@ function createLocationPin() {
 // =========================
 // 建立整組導引
 // =========================
-
 function createGuide(step) {
   const group = new THREE.Group();
 
   const dots = [];
   const arrowGroup = new THREE.Group();
 
-  // 快速新增點點
   const addDot = (
     x,
     y,
@@ -261,23 +259,28 @@ function createGuide(step) {
   };
 
   // =========================
+  // 所有方向共用：
+  // 點點永遠維持正中央直線
+  // =========================
+
+  addDot(0, -0.72);
+  addDot(0, -0.59);
+  addDot(0, -0.46);
+  addDot(0, -0.33);
+  addDot(0, -0.20);
+  addDot(0, -0.07);
+
+  // =========================
   // 前方
   // =========================
 
   if (step.direction === "forward") {
-    addDot(0, -0.68);
-    addDot(0, -0.55);
-    addDot(0, -0.42);
-    addDot(0, -0.29);
-    addDot(0, -0.16);
-
     for (let i = 0; i < 3; i++) {
       const arrow = createChevron();
 
+      // >>> 轉成往上
       arrow.rotation.z =
-        THREE.MathUtils.degToRad(
-          90
-        );
+        THREE.MathUtils.degToRad(90);
 
       arrow.position.y =
         i * 0.17;
@@ -287,7 +290,7 @@ function createGuide(step) {
 
     arrowGroup.position.set(
       0,
-      0.01,
+      0.12,
       0.07
     );
   }
@@ -297,24 +300,21 @@ function createGuide(step) {
   // =========================
 
   else if (step.direction === "right") {
-    addDot(-0.12, -0.68);
-    addDot(-0.12, -0.55);
-    addDot(-0.12, -0.42);
-    addDot(-0.12, -0.29);
-    addDot(-0.12, -0.16);
-
     for (let i = 0; i < 3; i++) {
       const arrow = createChevron();
 
+      // 保持 >>>
       arrow.position.x =
         i * 0.20;
 
       arrowGroup.add(arrow);
     }
 
+    // 箭頭放在直線點點上方
+    // 不和點點重疊
     arrowGroup.position.set(
-      -0.05,
-      0.08,
+      -0.20,
+      0.16,
       0.07
     );
   }
@@ -324,15 +324,10 @@ function createGuide(step) {
   // =========================
 
   else if (step.direction === "left") {
-    addDot(0.12, -0.68);
-    addDot(0.12, -0.55);
-    addDot(0.12, -0.42);
-    addDot(0.12, -0.29);
-    addDot(0.12, -0.16);
-
     for (let i = 0; i < 3; i++) {
       const arrow = createChevron();
 
+      // >>> 轉成 <<<
       arrow.rotation.z =
         Math.PI;
 
@@ -342,9 +337,11 @@ function createGuide(step) {
       arrowGroup.add(arrow);
     }
 
+    // 同樣只改箭頭
+    // 點點仍維持中央直線
     arrowGroup.position.set(
-      0.05,
-      0.08,
+      0.20,
+      0.16,
       0.07
     );
   }
@@ -357,18 +354,12 @@ function createGuide(step) {
     step.direction === "arrived" ||
     step.arrived
   ) {
-    addDot(0, -0.68);
-    addDot(0, -0.55);
-    addDot(0, -0.42);
-    addDot(0, -0.29);
-    addDot(0, -0.16);
-
     const pin =
       createLocationPin();
 
     pin.position.set(
       0,
-      0.08,
+      0.14,
       0.07
     );
 
@@ -376,24 +367,16 @@ function createGuide(step) {
   }
 
   // =========================
-  // 如果 route.js 沒寫 direction
-  // 預設當作 forward
+  // 沒寫 direction
+  // 預設前方
   // =========================
 
   else {
-    addDot(0, -0.68);
-    addDot(0, -0.55);
-    addDot(0, -0.42);
-    addDot(0, -0.29);
-    addDot(0, -0.16);
-
     for (let i = 0; i < 3; i++) {
       const arrow = createChevron();
 
       arrow.rotation.z =
-        THREE.MathUtils.degToRad(
-          90
-        );
+        THREE.MathUtils.degToRad(90);
 
       arrow.position.y =
         i * 0.17;
@@ -403,14 +386,13 @@ function createGuide(step) {
 
     arrowGroup.position.set(
       0,
-      0.01,
+      0.12,
       0.07
     );
   }
 
   group.add(arrowGroup);
 
-  // 整組大小
   group.scale.setScalar(0.85);
 
   group.userData = {
@@ -426,6 +408,7 @@ function createGuide(step) {
 
   return group;
 }
+
 
 // =========================
 // 建立所有 Target
