@@ -2,12 +2,20 @@ import * as THREE from "three";
 import { MindARThree } from "mindar-image-three";
 import { ROUTE } from "./route.js";
 
+// =========================
+// DOM
+// =========================
+
 const startButton = document.querySelector("#start-button");
 const guideState = document.querySelector("#guide-state");
 const guideTitle = document.querySelector("#guide-title");
 const guideMessage = document.querySelector("#guide-message");
 const hint = document.querySelector("#hint");
 const errorCard = document.querySelector("#error-card");
+
+// =========================
+// MindAR
+// =========================
 
 const mindarThree = new MindARThree({
   container: document.querySelector("#ar-container"),
@@ -21,11 +29,15 @@ const { renderer, scene, camera } = mindarThree;
 
 const activeGuides = [];
 
+// =========================
+// 更新文字
+// =========================
+
 function setGuideText(step) {
   guideTitle.textContent = step.title;
   guideMessage.textContent = step.instruction;
 
-  if (step.arrived) {
+  if (step.arrived || step.direction === "arrived") {
     guideState.textContent = "已抵達";
     guideState.className = "state state--arrived";
   } else {
@@ -33,6 +45,10 @@ function setGuideText(step) {
     guideState.className = "state state--located";
   }
 }
+
+// =========================
+// 建立藍色點點
+// =========================
 
 function createDot() {
   const geometry = new THREE.SphereGeometry(
@@ -53,11 +69,14 @@ function createDot() {
   );
 }
 
-//箭頭改成「白底＋藍框」
+// =========================
+// 建立白色＋藍框箭頭
+// =========================
+
 function createChevron() {
   const group = new THREE.Group();
 
-  // 箭頭外框
+  // 藍色外框
   const outerShape = new THREE.Shape();
 
   outerShape.moveTo(-0.12, 0.09);
@@ -122,69 +141,272 @@ function createChevron() {
   return group;
 }
 
-//重新排列點點 與 3個箭頭
+// =========================
+// 建立抵達 Pin
+// =========================
+
+function createLocationPin() {
+  const group = new THREE.Group();
+
+  const blueMaterial =
+    new THREE.MeshBasicMaterial({
+      color: 0x2f80ed,
+      side: THREE.DoubleSide,
+    });
+
+  const whiteMaterial =
+    new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      side: THREE.DoubleSide,
+    });
+
+  const shape = new THREE.Shape();
+
+  shape.moveTo(0, -0.14);
+
+  shape.bezierCurveTo(
+    -0.04,
+    -0.07,
+    -0.12,
+    -0.02,
+    -0.12,
+    0.08
+  );
+
+  shape.bezierCurveTo(
+    -0.12,
+    0.20,
+    -0.06,
+    0.27,
+    0,
+    0.27
+  );
+
+  shape.bezierCurveTo(
+    0.06,
+    0.27,
+    0.12,
+    0.20,
+    0.12,
+    0.08
+  );
+
+  shape.bezierCurveTo(
+    0.12,
+    -0.02,
+    0.04,
+    -0.07,
+    0,
+    -0.14
+  );
+
+  const geometry =
+    new THREE.ShapeGeometry(shape);
+
+  const pin =
+    new THREE.Mesh(
+      geometry,
+      blueMaterial
+    );
+
+  group.add(pin);
+
+  // Pin 中央白色圓孔
+  const hole =
+    new THREE.Mesh(
+      new THREE.CircleGeometry(
+        0.035,
+        32
+      ),
+      whiteMaterial
+    );
+
+  hole.position.set(
+    0,
+    0.11,
+    0.002
+  );
+
+  group.add(hole);
+
+  return group;
+}
+
+// =========================
+// 建立整組導引
+// =========================
+
 function createGuide(step) {
   const group = new THREE.Group();
 
   const dots = [];
+  const arrowGroup = new THREE.Group();
 
-  // 路線點點
-  const dotPositions = [
-    [0, -0.62, 0.04],
-    [0, -0.50, 0.04],
-    [0, -0.38, 0.04],
-    [0, -0.26, 0.04],
-    [0, -0.14, 0.04],
-  ];
+  // 快速新增點點
+  const addDot = (
+    x,
+    y,
+    z = 0.04
+  ) => {
+    const dot = createDot();
 
-  dotPositions.forEach(
-    (position, index) => {
-
-      const dot = createDot();
-
-      dot.position.set(
-        position[0],
-        position[1],
-        position[2]
-      );
-
-      group.add(dot);
-      dots.push(dot);
-    }
-  );
-
-  // =========================
-  // 三個大型箭頭
-  // =========================
-
-  const arrowGroup =
-    new THREE.Group();
-
-  for (let i = 0; i < 3; i++) {
-    const arrow =
-      createChevron();
-
-    arrow.position.x =
-      i * 0.20;
-
-    arrowGroup.add(arrow);
-  }
-
-  // 讓三個箭頭置中
-  arrowGroup.position.set(
-    -0.20,
-    0.08,
-    0.07
-  );
-
-  // route.js 控制方向
-  const rotation =
-    THREE.MathUtils.degToRad(
-      step.arrowRotationZ || 0
+    dot.position.set(
+      x,
+      y,
+      z
     );
 
-  arrowGroup.rotation.z =
-    rotation;
+    group.add(dot);
+    dots.push(dot);
+  };
+
+  // =========================
+  // 前方
+  // =========================
+
+  if (step.direction === "forward") {
+    addDot(0, -0.68);
+    addDot(0, -0.55);
+    addDot(0, -0.42);
+    addDot(0, -0.29);
+    addDot(0, -0.16);
+
+    for (let i = 0; i < 3; i++) {
+      const arrow = createChevron();
+
+      arrow.rotation.z =
+        THREE.MathUtils.degToRad(
+          90
+        );
+
+      arrow.position.y =
+        i * 0.17;
+
+      arrowGroup.add(arrow);
+    }
+
+    arrowGroup.position.set(
+      0,
+      0.01,
+      0.07
+    );
+  }
+
+  // =========================
+  // 右轉
+  // =========================
+
+  else if (step.direction === "right") {
+    addDot(-0.12, -0.68);
+    addDot(-0.12, -0.55);
+    addDot(-0.12, -0.42);
+    addDot(-0.12, -0.29);
+    addDot(-0.12, -0.16);
+
+    for (let i = 0; i < 3; i++) {
+      const arrow = createChevron();
+
+      arrow.position.x =
+        i * 0.20;
+
+      arrowGroup.add(arrow);
+    }
+
+    arrowGroup.position.set(
+      -0.05,
+      0.08,
+      0.07
+    );
+  }
+
+  // =========================
+  // 左轉
+  // =========================
+
+  else if (step.direction === "left") {
+    addDot(0.12, -0.68);
+    addDot(0.12, -0.55);
+    addDot(0.12, -0.42);
+    addDot(0.12, -0.29);
+    addDot(0.12, -0.16);
+
+    for (let i = 0; i < 3; i++) {
+      const arrow = createChevron();
+
+      arrow.rotation.z =
+        Math.PI;
+
+      arrow.position.x =
+        -i * 0.20;
+
+      arrowGroup.add(arrow);
+    }
+
+    arrowGroup.position.set(
+      0.05,
+      0.08,
+      0.07
+    );
+  }
+
+  // =========================
+  // 抵達
+  // =========================
+
+  else if (
+    step.direction === "arrived" ||
+    step.arrived
+  ) {
+    addDot(0, -0.68);
+    addDot(0, -0.55);
+    addDot(0, -0.42);
+    addDot(0, -0.29);
+    addDot(0, -0.16);
+
+    const pin =
+      createLocationPin();
+
+    pin.position.set(
+      0,
+      0.08,
+      0.07
+    );
+
+    arrowGroup.add(pin);
+  }
+
+  // =========================
+  // 如果 route.js 沒寫 direction
+  // 預設當作 forward
+  // =========================
+
+  else {
+    addDot(0, -0.68);
+    addDot(0, -0.55);
+    addDot(0, -0.42);
+    addDot(0, -0.29);
+    addDot(0, -0.16);
+
+    for (let i = 0; i < 3; i++) {
+      const arrow = createChevron();
+
+      arrow.rotation.z =
+        THREE.MathUtils.degToRad(
+          90
+        );
+
+      arrow.position.y =
+        i * 0.17;
+
+      arrowGroup.add(arrow);
+    }
+
+    arrowGroup.position.set(
+      0,
+      0.01,
+      0.07
+    );
+  }
 
   group.add(arrowGroup);
 
@@ -196,14 +418,24 @@ function createGuide(step) {
     arrowGroup,
     baseArrowY:
       arrowGroup.position.y,
+    floatSeed:
+      Math.random() *
+      Math.PI *
+      2,
   };
 
   return group;
 }
 
+// =========================
+// 建立所有 Target
+// =========================
+
 ROUTE.forEach((step) => {
   const anchor =
-    mindarThree.addAnchor(step.targetIndex);
+    mindarThree.addAnchor(
+      step.targetIndex
+    );
 
   const guide =
     createGuide(step);
@@ -214,44 +446,59 @@ ROUTE.forEach((step) => {
 
   activeGuides.push(guide);
 
+  // 掃描成功
   anchor.onTargetFound = () => {
-    activeGuides.forEach((item) => {
-      item.visible = false;
-    });
+    activeGuides.forEach(
+      (item) => {
+        item.visible = false;
+      }
+    );
 
     guide.visible = true;
 
     setGuideText(step);
 
-    if (step.arrived) {
+    if (
+      step.direction === "arrived" ||
+      step.arrived
+    ) {
       hint.textContent =
-        "已抵達目的地。";
+        "已抵達目的地";
     } else {
       hint.textContent =
-        `第 ${step.targetIndex + 1} 張地標已定位`;
+        `第 ${
+          step.targetIndex + 1
+        } 張地標已定位`;
     }
 
     console.log(
-      `Target ${step.targetIndex} found`
+      "FOUND TARGET:",
+      step.targetIndex,
+      step.direction
     );
   };
 
+  // Target 離開鏡頭
   anchor.onTargetLost = () => {
     guide.visible = false;
 
     console.log(
-      `Target ${step.targetIndex} lost`
+      "LOST TARGET:",
+      step.targetIndex
     );
   };
 });
+
+// =========================
+// 浮空動畫
+// =========================
 
 function animate(time) {
   const seconds =
     time * 0.001;
 
   activeGuides.forEach(
-    (guide, guideIndex) => {
-
+    (guide) => {
       if (!guide.visible) {
         return;
       }
@@ -260,28 +507,39 @@ function animate(time) {
         dots,
         arrowGroup,
         baseArrowY,
+        floatSeed,
       } = guide.userData;
 
+      // 整組微微浮動
+      guide.position.z =
+        Math.sin(
+          seconds * 2 +
+          floatSeed
+        ) * 0.006;
+
+      // 點點微呼吸
       dots.forEach(
         (dot, index) => {
-
-          const scale =
+          const pulse =
             1 +
             Math.sin(
               seconds * 4 -
               index * 0.6
-            ) * 0.08;
+            ) * 0.06;
 
-          dot.scale.setScalar(scale);
+          dot.scale.setScalar(
+            pulse
+          );
         }
       );
 
+      // 箭頭 / Pin 微微上下漂浮
       arrowGroup.position.y =
         baseArrowY +
         Math.sin(
           seconds * 3 +
-          guideIndex
-        ) * 0.015;
+          floatSeed
+        ) * 0.012;
     }
   );
 
@@ -291,8 +549,11 @@ function animate(time) {
   );
 }
 
-async function startAR() {
+// =========================
+// 啟動 AR
+// =========================
 
+async function startAR() {
   startButton.disabled = true;
 
   startButton.textContent =
@@ -301,7 +562,6 @@ async function startAR() {
   errorCard.hidden = true;
 
   try {
-
     await mindarThree.start();
 
     renderer.setAnimationLoop(
@@ -316,9 +576,7 @@ async function startAR() {
     console.log(
       "MindAR started successfully"
     );
-
   } catch (error) {
-
     console.error(
       "MindAR start error:",
       error
@@ -332,6 +590,10 @@ async function startAR() {
       "再試一次";
   }
 }
+
+// =========================
+// Button
+// =========================
 
 startButton.addEventListener(
   "click",
