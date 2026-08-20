@@ -464,6 +464,12 @@ function createArrowGuide(step) {
     );
   }
 
+    // =========================
+    // 箭頭整體放大
+    // =========================
+
+    arrowGroup.scale.setScalar(1.6);
+
   return arrowGroup;
 }
 
