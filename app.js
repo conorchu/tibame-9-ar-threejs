@@ -2,9 +2,9 @@ import * as THREE from "three";
 import { MindARThree } from "mindar-image-three";
 import { ROUTE } from "./route.js";
 
-// =========================
+// ==================================================
 // DOM
-// =========================
+// ==================================================
 
 const startButton = document.querySelector("#start-button");
 const guideState = document.querySelector("#guide-state");
@@ -13,9 +13,9 @@ const guideMessage = document.querySelector("#guide-message");
 const hint = document.querySelector("#hint");
 const errorCard = document.querySelector("#error-card");
 
-// =========================
+// ==================================================
 // MindAR
-// =========================
+// ==================================================
 
 const mindarThree = new MindARThree({
   container: document.querySelector("#ar-container"),
@@ -29,9 +29,9 @@ const { renderer, scene, camera } = mindarThree;
 
 const activeGuides = [];
 
-// =========================
+// ==================================================
 // 更新文字
-// =========================
+// ==================================================
 
 function setGuideText(step) {
   guideTitle.textContent = step.title;
@@ -46,21 +46,16 @@ function setGuideText(step) {
   }
 }
 
-// =========================
-// 建立藍色點點
-// =========================
-
-
-// =========================
+// ==================================================
 // 建立白色＋藍框箭頭
-// =========================
+// ==================================================
 
 function createChevron() {
   const group = new THREE.Group();
 
-  // -------------------------
+  // ==================================================
   // 藍色外框
-  // -------------------------
+  // ==================================================
 
   const outerShape = new THREE.Shape();
 
@@ -73,9 +68,7 @@ function createChevron() {
   outerShape.closePath();
 
   const outerGeometry =
-    new THREE.ShapeGeometry(
-      outerShape
-    );
+    new THREE.ShapeGeometry(outerShape);
 
   const outerMaterial =
     new THREE.MeshBasicMaterial({
@@ -91,9 +84,9 @@ function createChevron() {
 
   group.add(outerArrow);
 
-  // -------------------------
+  // ==================================================
   // 白色內層
-  // -------------------------
+  // ==================================================
 
   const innerShape = new THREE.Shape();
 
@@ -106,9 +99,7 @@ function createChevron() {
   innerShape.closePath();
 
   const innerGeometry =
-    new THREE.ShapeGeometry(
-      innerShape
-    );
+    new THREE.ShapeGeometry(innerShape);
 
   const innerMaterial =
     new THREE.MeshBasicMaterial({
@@ -129,9 +120,9 @@ function createChevron() {
   return group;
 }
 
-// =========================
+// ==================================================
 // 建立抵達 Pin
-// =========================
+// ==================================================
 
 function createLocationPin() {
   const group = new THREE.Group();
@@ -199,7 +190,10 @@ function createLocationPin() {
 
   group.add(pin);
 
-  // 中央白色圓孔
+  // ==================================================
+  // Pin 中央白色圓孔
+  // ==================================================
+
   const hole =
     new THREE.Mesh(
       new THREE.CircleGeometry(
@@ -220,112 +214,87 @@ function createLocationPin() {
   return group;
 }
 
-
-
-// =========================
+// ==================================================
 // 建立箭頭
-// =========================
-function createGuide(step) {
+// ==================================================
 
-  const group = new THREE.Group();
-
-  // ==================================================
-  // 箭頭
-  // ==================================================
-
+function createArrowGuide(step) {
   const arrowGroup =
-    createArrowGuide(step);
-
-  group.add(arrowGroup);
+    new THREE.Group();
 
   // ==================================================
-  // 整體縮放
+  // FORWARD
   // ==================================================
 
-  group.scale.setScalar(0.85);
+  if (step.direction === "forward") {
 
-  // ==================================================
-  // 動畫資料
-  // ==================================================
-
-  group.userData = {
-
-    arrowGroup,
-
-    baseArrowX:
-      arrowGroup.position.x,
-
-    baseArrowY:
-      arrowGroup.position.y,
-
-    baseArrowZ:
-      arrowGroup.position.z,
-
-    floatSeed:
-      Math.random() *
-      Math.PI *
-      2,
-  };
-
-  return group;
-}
-
-
-  // ==================================================
-  // 讓 Forward 箭頭水平貼地
-  // ==================================================
-
-  // ★ 注意：
-  // 使用 -90°，避免躺到地板後方向顛倒
-
-  arrowGroup.rotation.x =
-    THREE.MathUtils.degToRad(-90);
-
-  // ==================================================
-  // 箭頭高度
-  // ==================================================
-
-  // 原本較低
-  // -0.50
-
-  // 現在往上提
-  arrowGroup.position.set(
-    0,
-    0.35,
-    0.07
-  );
-
-}
-
-  // =========================
-  // RIGHT
-  // =========================
-
-  else if (
-    step.direction === "right"
-  ) {
-
-    for (
-      let i = 0;
-      i < 3;
-      i++
-    ) {
+    for (let i = 0; i < 3; i++) {
 
       const arrow =
         createChevron();
 
-      // 原始 >>> 保持不旋轉
+      // 原始 >>> 
+      // 旋轉 90° → ↑
+
+      arrow.rotation.z =
+        THREE.MathUtils.degToRad(90);
+
+      // 三個箭頭沿著前方排列
+
+      arrow.position.y =
+        i * 0.17;
+
+      arrowGroup.add(arrow);
+    }
+
+    // ==================================================
+    // ★ Forward 水平貼地
+    // ==================================================
+    //
+    // 使用 -90°
+    // 避免躺到地板後方向反轉
+    //
+
+    arrowGroup.rotation.x =
+      THREE.MathUtils.degToRad(-90);
+
+    // ==================================================
+    // ★ Forward 箭頭高度
+    // ==================================================
+    //
+    // 數值越接近 0 → 越高
+    // 數值越負 → 越低
+    //
+
+    arrowGroup.position.set(
+      0,
+      -0.35,
+      0.07
+    );
+  }
+
+  // ==================================================
+  // RIGHT
+  // ==================================================
+
+  else if (step.direction === "right") {
+
+    for (let i = 0; i < 3; i++) {
+
+      const arrow =
+        createChevron();
+
+      // >>> 保持原方向
 
       arrow.position.x =
         i * 0.20;
 
-      arrowGroup.add(
-        arrow
-      );
+      arrowGroup.add(arrow);
     }
 
-    // 箭頭獨立位置
-    // 不受點點數量影響
+    // ==================================================
+    // Right 保持原本垂直方向
+    // ==================================================
 
     arrowGroup.position.set(
       -0.20,
@@ -334,25 +303,18 @@ function createGuide(step) {
     );
   }
 
-  // =========================
+  // ==================================================
   // LEFT
-  // =========================
+  // ==================================================
 
-  else if (
-    step.direction === "left"
-  ) {
+  else if (step.direction === "left") {
 
-    for (
-      let i = 0;
-      i < 3;
-      i++
-    ) {
+    for (let i = 0; i < 3; i++) {
 
       const arrow =
         createChevron();
 
-      // >>> 旋轉 180°
-      // 變成 <<<
+      // >>> → <<<
 
       arrow.rotation.z =
         Math.PI;
@@ -360,12 +322,12 @@ function createGuide(step) {
       arrow.position.x =
         -i * 0.20;
 
-      arrowGroup.add(
-        arrow
-      );
+      arrowGroup.add(arrow);
     }
 
-    // 箭頭獨立位置
+    // ==================================================
+    // Left 保持原本垂直方向
+    // ==================================================
 
     arrowGroup.position.set(
       0.20,
@@ -374,9 +336,9 @@ function createGuide(step) {
     );
   }
 
-  // =========================
+  // ==================================================
   // ARRIVED
-  // =========================
+  // ==================================================
 
   else if (
     step.direction === "arrived" ||
@@ -392,113 +354,62 @@ function createGuide(step) {
       0.07
     );
 
-    arrowGroup.add(
-      pin
-    );
+    arrowGroup.add(pin);
+
+    // 抵達時不需要箭頭高度調整
   }
 
-  // =========================
+  // ==================================================
   // DEFAULT
-  // =========================
+  // ==================================================
 
   else {
 
-    for (
-      let i = 0;
-      i < 3;
-      i++
-    ) {
+    for (let i = 0; i < 3; i++) {
 
       const arrow =
         createChevron();
 
       arrow.rotation.z =
-        THREE.MathUtils.degToRad(
-          90
-        );
+        THREE.MathUtils.degToRad(90);
 
       arrow.position.y =
         i * 0.17;
 
-      arrowGroup.add(
-        arrow
-      );
+      arrowGroup.add(arrow);
     }
 
     arrowGroup.position.set(
       0,
-      0.12,
+      -0.35,
       0.07
     );
   }
 
+  // ==================================================
+  // ★ 箭頭整體放大
+  // ==================================================
+
+  arrowGroup.scale.setScalar(1.6);
+
   return arrowGroup;
 }
 
-// =========================
+// ==================================================
 // 建立整組 AR 導引
-// =========================
+// ==================================================
 
 function createGuide(step) {
 
-  const group = new THREE.Group();
+  const group =
+    new THREE.Group();
 
   // ==================================================
-// ① 點點路線
-// ==================================================
-
-const dots = createDotRoute(step);
-
-// 點點獨立成一個 Group
-const dotRouteGroup = new THREE.Group();
-
-dots.forEach((dot) => {
-  dotRouteGroup.add(dot);
-});
-
-// ==================================================
-// ★ 點點躺到地板
-// ==================================================
-//
-// 原本點點是在 Target 的垂直平面
-//
-//     •
-//     •
-//     •
-//
-// 現在把它旋轉 90°
-// 讓它變成水平地板
-//
-//     •  •  •  •  •
-// __________________
-//        地板
-//
-
-dotRouteGroup.rotation.x =
-  THREE.MathUtils.degToRad(90);
-
-// ↓ 控制點點離地高度
-// 先用這個數值測試
-dotRouteGroup.position.y = -0.55;
-
-group.add(dotRouteGroup);
-
-  // ==================================================
-  // ② 箭頭
+  // 只有箭頭
   // ==================================================
 
   const arrowGroup =
     createArrowGuide(step);
-
-  // ★ 箭頭往下
-  //
-  // 目前你的是：
-  //
-  // arrowGroup.position.y = 0.16
-  //
-  // 改成更低的位置
-
-  arrowGroup.position.y -= 0.30;
 
   group.add(arrowGroup);
 
@@ -513,10 +424,6 @@ group.add(dotRouteGroup);
   // ==================================================
 
   group.userData = {
-
-    dots,
-
-    dotRouteGroup,
 
     arrowGroup,
 
@@ -538,98 +445,93 @@ group.add(dotRouteGroup);
   return group;
 }
 
-// =========================
+// ==================================================
 // 建立所有 Target
-// =========================
+// ==================================================
 
-ROUTE.forEach(
-  (step) => {
+ROUTE.forEach((step) => {
 
-    const anchor =
-      mindarThree.addAnchor(
-        step.targetIndex
-      );
+  const anchor =
+    mindarThree.addAnchor(
+      step.targetIndex
+    );
 
-    const guide =
-      createGuide(step);
+  const guide =
+    createGuide(step);
+
+  guide.visible = false;
+
+  anchor.group.add(
+    guide
+  );
+
+  activeGuides.push(
+    guide
+  );
+
+  // ==================================================
+  // Target 找到
+  // ==================================================
+
+  anchor.onTargetFound = () => {
+
+    // 只顯示目前這一站
+
+    activeGuides.forEach(
+      (item) => {
+        item.visible = false;
+      }
+    );
+
+    guide.visible = true;
+
+    setGuideText(step);
+
+    // ==================================================
+    // UI 提示
+    // ==================================================
+
+    if (
+      step.direction === "arrived" ||
+      step.arrived
+    ) {
+
+      hint.textContent =
+        "已抵達目的地";
+
+    } else {
+
+      hint.textContent =
+        `第 ${
+          step.targetIndex + 1
+        } 張地標已定位`;
+    }
+
+    console.log(
+      "FOUND TARGET:",
+      step.targetIndex,
+      step.direction
+    );
+  };
+
+  // ==================================================
+  // Target 離開鏡頭
+  // ==================================================
+
+  anchor.onTargetLost = () => {
 
     guide.visible = false;
 
-    anchor.group.add(
-      guide
+    console.log(
+      "LOST TARGET:",
+      step.targetIndex
     );
+  };
+});
 
-    activeGuides.push(
-      guide
-    );
-
-    // =========================
-    // Target 找到
-    // =========================
-
-    anchor.onTargetFound =
-      () => {
-
-        // 只顯示目前這一站
-
-        activeGuides.forEach(
-          (item) => {
-            item.visible = false;
-          }
-        );
-
-        guide.visible = true;
-
-        setGuideText(
-          step
-        );
-
-        if (
-          step.direction === "arrived" ||
-          step.arrived
-        ) {
-
-          hint.textContent =
-            "已抵達目的地";
-
-        } else {
-
-          hint.textContent =
-            `第 ${
-              step.targetIndex + 1
-            } 張地標已定位`;
-
-        }
-
-        console.log(
-          "FOUND TARGET:",
-          step.targetIndex,
-          step.direction,
-          "dotCount:",
-          step.dotCount
-        );
-      };
-
-    // =========================
-    // Target 離開鏡頭
-    // =========================
-
-    anchor.onTargetLost =
-      () => {
-
-        guide.visible = false;
-
-        console.log(
-          "LOST TARGET:",
-          step.targetIndex
-        );
-      };
-  }
-);
-
-// =========================
+// ==================================================
 // 浮空動畫
-// =========================
+// ==================================================
 
 function animate(time) {
 
@@ -639,9 +541,7 @@ function animate(time) {
   activeGuides.forEach(
     (guide) => {
 
-      if (
-        !guide.visible
-      ) {
+      if (!guide.visible) {
         return;
       }
 
@@ -653,9 +553,9 @@ function animate(time) {
         floatSeed,
       } = guide.userData;
 
-      // =========================
+      // ==================================================
       // 整組 AR 微微浮動
-      // =========================
+      // ==================================================
 
       guide.position.z =
         Math.sin(
@@ -663,10 +563,9 @@ function animate(time) {
           floatSeed
         ) * 0.006;
 
-
-      // =========================
+      // ==================================================
       // 箭頭獨立浮動
-      // =========================
+      // ==================================================
 
       arrowGroup.position.x =
         baseArrowX;
@@ -689,9 +588,9 @@ function animate(time) {
   );
 }
 
-// =========================
+// ==================================================
 // 啟動 AR
-// =========================
+// ==================================================
 
 async function startAR() {
 
@@ -722,9 +621,7 @@ async function startAR() {
       "MindAR started successfully"
     );
 
-  } catch (
-    error
-  ) {
+  } catch (error) {
 
     console.error(
       "MindAR start error:",
@@ -742,9 +639,9 @@ async function startAR() {
   }
 }
 
-// =========================
+// ==================================================
 // Button
-// =========================
+// ==================================================
 
 startButton.addEventListener(
   "click",
