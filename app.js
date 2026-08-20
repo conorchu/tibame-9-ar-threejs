@@ -290,46 +290,51 @@ function createArrowGuide(step) {
     new THREE.Group();
 
   // ==================================================
-  // FORWARD
-  // ==================================================
+// FORWARD
+// ==================================================
 
-  if (step.direction === "forward") {
+if (step.direction === "forward") {
 
-    for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 3; i++) {
 
-      const arrow = createChevron();
+    const arrow = createChevron();
 
-      // 原本 >>> 
-      // 旋轉 90° → ↑
-      arrow.rotation.z =
-        THREE.MathUtils.degToRad(90);
-
-      // 三個箭頭沿著「前方」排列
-      arrow.position.y =
-        i * 0.17;
-
-      arrowGroup.add(arrow);
-    }
-
-    // ==================================================
-    // ★ Forward 箭頭躺到地板
-    // ==================================================
-    //
-    // 讓原本垂直的箭頭
-    // 轉成水平地板上的箭頭
-    //
-
-    arrowGroup.rotation.x =
+    // >>> → ↑
+    arrow.rotation.z =
       THREE.MathUtils.degToRad(90);
 
-    // ↓ 控制箭頭離地高度
-    arrowGroup.position.set(
-      0,
-      -0.50,
-      0.07
-    );
+    // 三個箭頭沿著前方排列
+    arrow.position.y =
+      i * 0.17;
 
+    arrowGroup.add(arrow);
   }
+
+  // ==================================================
+  // 讓 Forward 箭頭水平貼地
+  // ==================================================
+
+  // ★ 注意：
+  // 使用 -90°，避免躺到地板後方向顛倒
+
+  arrowGroup.rotation.x =
+    THREE.MathUtils.degToRad(-90);
+
+  // ==================================================
+  // 箭頭高度
+  // ==================================================
+
+  // 原本較低
+  // -0.50
+
+  // 現在往上提
+  arrowGroup.position.set(
+    0,
+    -0.35,
+    0.07
+  );
+
+}
 
   // =========================
   // RIGHT
