@@ -324,7 +324,7 @@ function createArrowGuide(step) {
 
     arrowGroup.position.set(
       0,
-      0.12,
+      -0.18,
       0.07
     );
   }
@@ -361,7 +361,7 @@ function createArrowGuide(step) {
 
     arrowGroup.position.set(
       -0.20,
-      0.16,
+      -0.14,
       0.07
     );
   }
@@ -401,7 +401,7 @@ function createArrowGuide(step) {
 
     arrowGroup.position.set(
       0.20,
-      0.16,
+      -0.14,
       0.07
     );
   }
@@ -473,60 +473,105 @@ function createArrowGuide(step) {
 
 function createGuide(step) {
 
-  const group =
-    new THREE.Group();
+  const group = new THREE.Group();
 
-  // =========================
-  // ① 點點
-  // =========================
+  // ==================================================
+  // ① 點點路線
+  // ==================================================
+
+  const dots = createDotRoute(step);
+
+  dots.forEach((dot) => {
+    group.add(dot);
+  });
+
+  // ==================================================
+  // ★ 讓點點「躺到地板」
+  // ==================================================
   //
-  // 完全獨立
+  // 原本：
   //
-  // 點點數量由 route.js
-  // 的 dotCount 控制
+  //       •
+  //       •
+  //       •
   //
+  //       ↑ 垂直貼在牆上
+  //
+  // 現在：
+  //
+  //       •  •  •  •  •
+  //
+  //       ↑ 水平躺在地板
+  //
+  // ==================================================
 
-  const dots =
-    createDotRoute(step);
+  const dotRouteGroup = new THREE.Group();
 
-  dots.forEach(
-    (dot) => {
-      group.add(dot);
-    }
-  );
+  dots.forEach((dot) => {
 
-  // =========================
+    // 從原本 group 拿出來
+    group.remove(dot);
+
+    dotRouteGroup.add(dot);
+
+  });
+
+  // X 軸旋轉 90°
+  // 把原本的 XY 平面
+  // 轉成 XZ 水平面
+
+  dotRouteGroup.rotation.x =
+    THREE.MathUtils.degToRad(90);
+
+  // ★ 這個數值控制「離地高度」
+  //
+  // 越接近 0：
+  // 越靠近 target 高度
+  //
+  // 越負：
+  // 越往地板下降
+  //
+  // 先從 -0.55 開始測試
+
+  dotRouteGroup.position.y =
+    -0.55;
+
+  group.add(dotRouteGroup);
+
+  // ==================================================
   // ② 箭頭
-  // =========================
-  //
-  // 完全獨立
-  //
-  // 不使用點點數量
-  // 不使用點點位置
-  //
+  // ==================================================
 
   const arrowGroup =
     createArrowGuide(step);
 
-  group.add(
-    arrowGroup
-  );
+  // ★ 箭頭往下
+  //
+  // 目前你的是：
+  //
+  // arrowGroup.position.y = 0.16
+  //
+  // 改成更低的位置
 
-  // =========================
+  arrowGroup.position.y -= 0.30;
+
+  group.add(arrowGroup);
+
+  // ==================================================
   // 整體縮放
-  // =========================
+  // ==================================================
 
-  group.scale.setScalar(
-    0.85
-  );
+  group.scale.setScalar(0.85);
 
-  // =========================
+  // ==================================================
   // 動畫資料
-  // =========================
+  // ==================================================
 
   group.userData = {
 
     dots,
+
+    dotRouteGroup,
 
     arrowGroup,
 
