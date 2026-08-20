@@ -50,24 +50,6 @@ function setGuideText(step) {
 // 建立藍色點點
 // =========================
 
-function createDot() {
-  const geometry = new THREE.SphereGeometry(
-    0.018,
-    20,
-    20
-  );
-
-  const material = new THREE.MeshBasicMaterial({
-    color: 0x2f80ed,
-    transparent: true,
-    opacity: 0.95,
-  });
-
-  return new THREE.Mesh(
-    geometry,
-    material
-  );
-}
 
 // =========================
 // 建立白色＋藍框箭頭
@@ -238,77 +220,56 @@ function createLocationPin() {
   return group;
 }
 
-// =========================
-// 建立直線點點
-// =========================
 
-function createDotRoute(step) {
-  const dots = [];
-
-  const dotCount =
-    Number.isFinite(step.dotCount)
-      ? step.dotCount
-      : 6;
-
-  const dotSpacing =
-    Number.isFinite(step.dotSpacing)
-      ? step.dotSpacing
-      : 0.13;
-
-  for (
-    let i = 0;
-    i < dotCount;
-    i++
-  ) {
-
-    const dot = createDot();
-
-    // =========================
-    // 重點：
-    // 點點永遠是正中央直線
-    // =========================
-
-    dot.position.set(
-      0,
-      -0.72 + i * dotSpacing,
-      0.08
-    );
-
-    dots.push(dot);
-  }
-
-  return dots;
-}
 
 // =========================
 // 建立箭頭
 // =========================
+function createGuide(step) {
 
-function createArrowGuide(step) {
-
-  const arrowGroup =
-    new THREE.Group();
+  const group = new THREE.Group();
 
   // ==================================================
-// FORWARD
-// ==================================================
+  // 箭頭
+  // ==================================================
 
-if (step.direction === "forward") {
+  const arrowGroup =
+    createArrowGuide(step);
 
-  for (let i = 0; i < 3; i++) {
+  group.add(arrowGroup);
 
-    const arrow = createChevron();
+  // ==================================================
+  // 整體縮放
+  // ==================================================
 
-    // >>> → ↑
-    arrow.rotation.z =
-      THREE.MathUtils.degToRad(90);
+  group.scale.setScalar(0.85);
 
-    // 三個箭頭沿著前方排列
-    arrow.position.y =
-      i * 0.17;
+  // ==================================================
+  // 動畫資料
+  // ==================================================
 
-    arrowGroup.add(arrow);
-  }
+  group.userData = {
+
+    arrowGroup,
+
+    baseArrowX:
+      arrowGroup.position.x,
+
+    baseArrowY:
+      arrowGroup.position.y,
+
+    baseArrowZ:
+      arrowGroup.position.z,
+
+    floatSeed:
+      Math.random() *
+      Math.PI *
+      2,
+  };
+
+  return group;
+}
+
 
   // ==================================================
   // 讓 Forward 箭頭水平貼地
@@ -685,7 +646,6 @@ function animate(time) {
       }
 
       const {
-        dots,
         arrowGroup,
         baseArrowX,
         baseArrowY,
@@ -703,25 +663,6 @@ function animate(time) {
           floatSeed
         ) * 0.006;
 
-      // =========================
-      // 點點呼吸
-      // =========================
-
-      dots.forEach(
-        (dot, index) => {
-
-          const pulse =
-            1 +
-            Math.sin(
-              seconds * 4 -
-              index * 0.6
-            ) * 0.06;
-
-          dot.scale.setScalar(
-            pulse
-          );
-        }
-      );
 
       // =========================
       // 箭頭獨立浮動
