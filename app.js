@@ -76,7 +76,10 @@ function createDot() {
 function createChevron() {
   const group = new THREE.Group();
 
+  // -------------------------
   // 藍色外框
+  // -------------------------
+
   const outerShape = new THREE.Shape();
 
   outerShape.moveTo(-0.12, 0.09);
@@ -106,7 +109,10 @@ function createChevron() {
 
   group.add(outerArrow);
 
+  // -------------------------
   // 白色內層
+  // -------------------------
+
   const innerShape = new THREE.Shape();
 
   innerShape.moveTo(-0.095, 0.06);
@@ -211,7 +217,7 @@ function createLocationPin() {
 
   group.add(pin);
 
-  // Pin 中央白色圓孔
+  // 中央白色圓孔
   const hole =
     new THREE.Mesh(
       new THREE.CircleGeometry(
@@ -233,59 +239,87 @@ function createLocationPin() {
 }
 
 // =========================
-// 建立整組導引
+// 建立直線點點
 // =========================
-function createGuide(step) {
-  const group = new THREE.Group();
 
+function createDotRoute(step) {
   const dots = [];
-  const arrowGroup = new THREE.Group();
 
-  const addDot = (
-    x,
-    y,
-    z = 0.04
-  ) => {
+  const dotCount =
+    Number.isFinite(step.dotCount)
+      ? step.dotCount
+      : 6;
+
+  const dotSpacing =
+    Number.isFinite(step.dotSpacing)
+      ? step.dotSpacing
+      : 0.13;
+
+  for (
+    let i = 0;
+    i < dotCount;
+    i++
+  ) {
+
     const dot = createDot();
 
+    // =========================
+    // 重點：
+    // 點點永遠是正中央直線
+    // =========================
+
     dot.position.set(
-      x,
-      y,
-      z
+      0,
+      -0.72 + i * dotSpacing,
+      0.08
     );
 
-    group.add(dot);
     dots.push(dot);
-  };
+  }
+
+  return dots;
+}
+
+// =========================
+// 建立箭頭
+// =========================
+
+function createArrowGuide(step) {
+
+  const arrowGroup =
+    new THREE.Group();
 
   // =========================
-  // 所有方向共用：
-  // 點點永遠維持正中央直線
+  // FORWARD
   // =========================
 
-  addDot(0, -0.72);
-  addDot(0, -0.59);
-  addDot(0, -0.46);
-  addDot(0, -0.33);
-  addDot(0, -0.20);
-  addDot(0, -0.07);
+  if (
+    step.direction === "forward"
+  ) {
 
-  // =========================
-  // 前方
-  // =========================
+    for (
+      let i = 0;
+      i < 3;
+      i++
+    ) {
 
-  if (step.direction === "forward") {
-    for (let i = 0; i < 3; i++) {
-      const arrow = createChevron();
+      const arrow =
+        createChevron();
 
-      // >>> 轉成往上
+      // >>> 旋轉 90 度
+      // 變成 ↑↑↑
+
       arrow.rotation.z =
-        THREE.MathUtils.degToRad(90);
+        THREE.MathUtils.degToRad(
+          90
+        );
 
       arrow.position.y =
         i * 0.17;
 
-      arrowGroup.add(arrow);
+      arrowGroup.add(
+        arrow
+      );
     }
 
     arrowGroup.position.set(
@@ -296,22 +330,35 @@ function createGuide(step) {
   }
 
   // =========================
-  // 右轉
+  // RIGHT
   // =========================
 
-  else if (step.direction === "right") {
-    for (let i = 0; i < 3; i++) {
-      const arrow = createChevron();
+  else if (
+    step.direction === "right"
+  ) {
 
-      // 保持 >>>
+    for (
+      let i = 0;
+      i < 3;
+      i++
+    ) {
+
+      const arrow =
+        createChevron();
+
+      // 原始 >>> 保持不旋轉
+
       arrow.position.x =
         i * 0.20;
 
-      arrowGroup.add(arrow);
+      arrowGroup.add(
+        arrow
+      );
     }
 
-    // 箭頭放在直線點點上方
-    // 不和點點重疊
+    // 箭頭獨立位置
+    // 不受點點數量影響
+
     arrowGroup.position.set(
       -0.20,
       0.16,
@@ -320,25 +367,38 @@ function createGuide(step) {
   }
 
   // =========================
-  // 左轉
+  // LEFT
   // =========================
 
-  else if (step.direction === "left") {
-    for (let i = 0; i < 3; i++) {
-      const arrow = createChevron();
+  else if (
+    step.direction === "left"
+  ) {
 
-      // >>> 轉成 <<<
+    for (
+      let i = 0;
+      i < 3;
+      i++
+    ) {
+
+      const arrow =
+        createChevron();
+
+      // >>> 旋轉 180°
+      // 變成 <<<
+
       arrow.rotation.z =
         Math.PI;
 
       arrow.position.x =
         -i * 0.20;
 
-      arrowGroup.add(arrow);
+      arrowGroup.add(
+        arrow
+      );
     }
 
-    // 同樣只改箭頭
-    // 點點仍維持中央直線
+    // 箭頭獨立位置
+
     arrowGroup.position.set(
       0.20,
       0.16,
@@ -347,13 +407,14 @@ function createGuide(step) {
   }
 
   // =========================
-  // 抵達
+  // ARRIVED
   // =========================
 
   else if (
     step.direction === "arrived" ||
     step.arrived
   ) {
+
     const pin =
       createLocationPin();
 
@@ -363,25 +424,37 @@ function createGuide(step) {
       0.07
     );
 
-    arrowGroup.add(pin);
+    arrowGroup.add(
+      pin
+    );
   }
 
   // =========================
-  // 沒寫 direction
-  // 預設前方
+  // DEFAULT
   // =========================
 
   else {
-    for (let i = 0; i < 3; i++) {
-      const arrow = createChevron();
+
+    for (
+      let i = 0;
+      i < 3;
+      i++
+    ) {
+
+      const arrow =
+        createChevron();
 
       arrow.rotation.z =
-        THREE.MathUtils.degToRad(90);
+        THREE.MathUtils.degToRad(
+          90
+        );
 
       arrow.position.y =
         i * 0.17;
 
-      arrowGroup.add(arrow);
+      arrowGroup.add(
+        arrow
+      );
     }
 
     arrowGroup.position.set(
@@ -391,15 +464,81 @@ function createGuide(step) {
     );
   }
 
-  group.add(arrowGroup);
+  return arrowGroup;
+}
 
-  group.scale.setScalar(0.85);
+// =========================
+// 建立整組 AR 導引
+// =========================
+
+function createGuide(step) {
+
+  const group =
+    new THREE.Group();
+
+  // =========================
+  // ① 點點
+  // =========================
+  //
+  // 完全獨立
+  //
+  // 點點數量由 route.js
+  // 的 dotCount 控制
+  //
+
+  const dots =
+    createDotRoute(step);
+
+  dots.forEach(
+    (dot) => {
+      group.add(dot);
+    }
+  );
+
+  // =========================
+  // ② 箭頭
+  // =========================
+  //
+  // 完全獨立
+  //
+  // 不使用點點數量
+  // 不使用點點位置
+  //
+
+  const arrowGroup =
+    createArrowGuide(step);
+
+  group.add(
+    arrowGroup
+  );
+
+  // =========================
+  // 整體縮放
+  // =========================
+
+  group.scale.setScalar(
+    0.85
+  );
+
+  // =========================
+  // 動畫資料
+  // =========================
 
   group.userData = {
+
     dots,
+
     arrowGroup,
+
+    baseArrowX:
+      arrowGroup.position.x,
+
     baseArrowY:
       arrowGroup.position.y,
+
+    baseArrowZ:
+      arrowGroup.position.z,
+
     floatSeed:
       Math.random() *
       Math.PI *
@@ -409,100 +548,139 @@ function createGuide(step) {
   return group;
 }
 
-
 // =========================
 // 建立所有 Target
 // =========================
 
-ROUTE.forEach((step) => {
-  const anchor =
-    mindarThree.addAnchor(
-      step.targetIndex
-    );
+ROUTE.forEach(
+  (step) => {
 
-  const guide =
-    createGuide(step);
+    const anchor =
+      mindarThree.addAnchor(
+        step.targetIndex
+      );
 
-  guide.visible = false;
+    const guide =
+      createGuide(step);
 
-  anchor.group.add(guide);
-
-  activeGuides.push(guide);
-
-  // 掃描成功
-  anchor.onTargetFound = () => {
-    activeGuides.forEach(
-      (item) => {
-        item.visible = false;
-      }
-    );
-
-    guide.visible = true;
-
-    setGuideText(step);
-
-    if (
-      step.direction === "arrived" ||
-      step.arrived
-    ) {
-      hint.textContent =
-        "已抵達目的地";
-    } else {
-      hint.textContent =
-        `第 ${
-          step.targetIndex + 1
-        } 張地標已定位`;
-    }
-
-    console.log(
-      "FOUND TARGET:",
-      step.targetIndex,
-      step.direction
-    );
-  };
-
-  // Target 離開鏡頭
-  anchor.onTargetLost = () => {
     guide.visible = false;
 
-    console.log(
-      "LOST TARGET:",
-      step.targetIndex
+    anchor.group.add(
+      guide
     );
-  };
-});
+
+    activeGuides.push(
+      guide
+    );
+
+    // =========================
+    // Target 找到
+    // =========================
+
+    anchor.onTargetFound =
+      () => {
+
+        // 只顯示目前這一站
+
+        activeGuides.forEach(
+          (item) => {
+            item.visible = false;
+          }
+        );
+
+        guide.visible = true;
+
+        setGuideText(
+          step
+        );
+
+        if (
+          step.direction === "arrived" ||
+          step.arrived
+        ) {
+
+          hint.textContent =
+            "已抵達目的地";
+
+        } else {
+
+          hint.textContent =
+            `第 ${
+              step.targetIndex + 1
+            } 張地標已定位`;
+
+        }
+
+        console.log(
+          "FOUND TARGET:",
+          step.targetIndex,
+          step.direction,
+          "dotCount:",
+          step.dotCount
+        );
+      };
+
+    // =========================
+    // Target 離開鏡頭
+    // =========================
+
+    anchor.onTargetLost =
+      () => {
+
+        guide.visible = false;
+
+        console.log(
+          "LOST TARGET:",
+          step.targetIndex
+        );
+      };
+  }
+);
 
 // =========================
 // 浮空動畫
 // =========================
 
 function animate(time) {
+
   const seconds =
     time * 0.001;
 
   activeGuides.forEach(
     (guide) => {
-      if (!guide.visible) {
+
+      if (
+        !guide.visible
+      ) {
         return;
       }
 
       const {
         dots,
         arrowGroup,
+        baseArrowX,
         baseArrowY,
+        baseArrowZ,
         floatSeed,
       } = guide.userData;
 
-      // 整組微微浮動
+      // =========================
+      // 整組 AR 微微浮動
+      // =========================
+
       guide.position.z =
         Math.sin(
           seconds * 2 +
           floatSeed
         ) * 0.006;
 
-      // 點點微呼吸
+      // =========================
+      // 點點呼吸
+      // =========================
+
       dots.forEach(
         (dot, index) => {
+
           const pulse =
             1 +
             Math.sin(
@@ -516,13 +694,22 @@ function animate(time) {
         }
       );
 
-      // 箭頭 / Pin 微微上下漂浮
+      // =========================
+      // 箭頭獨立浮動
+      // =========================
+
+      arrowGroup.position.x =
+        baseArrowX;
+
       arrowGroup.position.y =
         baseArrowY +
         Math.sin(
           seconds * 3 +
           floatSeed
         ) * 0.012;
+
+      arrowGroup.position.z =
+        baseArrowZ;
     }
   );
 
@@ -537,21 +724,26 @@ function animate(time) {
 // =========================
 
 async function startAR() {
-  startButton.disabled = true;
+
+  startButton.disabled =
+    true;
 
   startButton.textContent =
     "正在開啟相機…";
 
-  errorCard.hidden = true;
+  errorCard.hidden =
+    true;
 
   try {
+
     await mindarThree.start();
 
     renderer.setAnimationLoop(
       animate
     );
 
-    startButton.hidden = true;
+    startButton.hidden =
+      true;
 
     hint.textContent =
       "請將鏡頭對準第 1 張 Tibame 地標";
@@ -559,15 +751,21 @@ async function startAR() {
     console.log(
       "MindAR started successfully"
     );
-  } catch (error) {
+
+  } catch (
+    error
+  ) {
+
     console.error(
       "MindAR start error:",
       error
     );
 
-    errorCard.hidden = false;
+    errorCard.hidden =
+      false;
 
-    startButton.disabled = false;
+    startButton.disabled =
+      false;
 
     startButton.textContent =
       "再試一次";
