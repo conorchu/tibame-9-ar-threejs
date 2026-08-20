@@ -289,44 +289,46 @@ function createArrowGuide(step) {
   const arrowGroup =
     new THREE.Group();
 
-  // =========================
+  // ==================================================
   // FORWARD
-  // =========================
+  // ==================================================
 
-  if (
-    step.direction === "forward"
-  ) {
+  if (step.direction === "forward") {
 
-    for (
-      let i = 0;
-      i < 3;
-      i++
-    ) {
+    for (let i = 0; i < 3; i++) {
 
-      const arrow =
-        createChevron();
+      const arrow = createChevron();
 
-      // >>> 旋轉 90 度
-      // 變成 ↑↑↑
-
+      // 原本 >>> 
+      // 旋轉 90° → ↑
       arrow.rotation.z =
-        THREE.MathUtils.degToRad(
-          90
-        );
+        THREE.MathUtils.degToRad(90);
 
+      // 三個箭頭沿著「前方」排列
       arrow.position.y =
         i * 0.17;
 
-      arrowGroup.add(
-        arrow
-      );
+      arrowGroup.add(arrow);
     }
 
+    // ==================================================
+    // ★ Forward 箭頭躺到地板
+    // ==================================================
+    //
+    // 讓原本垂直的箭頭
+    // 轉成水平地板上的箭頭
+    //
+
+    arrowGroup.rotation.x =
+      THREE.MathUtils.degToRad(90);
+
+    // ↓ 控制箭頭離地高度
     arrowGroup.position.set(
       0,
-      -0.18,
+      -0.50,
       0.07
     );
+
   }
 
   // =========================
@@ -464,12 +466,6 @@ function createArrowGuide(step) {
     );
   }
 
-    // =========================
-    // 箭頭整體放大
-    // =========================
-
-    arrowGroup.scale.setScalar(1.6);
-
   return arrowGroup;
 }
 
@@ -482,67 +478,44 @@ function createGuide(step) {
   const group = new THREE.Group();
 
   // ==================================================
-  // ① 點點路線
-  // ==================================================
+// ① 點點路線
+// ==================================================
 
-  const dots = createDotRoute(step);
+const dots = createDotRoute(step);
 
-  dots.forEach((dot) => {
-    group.add(dot);
-  });
+// 點點獨立成一個 Group
+const dotRouteGroup = new THREE.Group();
 
-  // ==================================================
-  // ★ 讓點點「躺到地板」
-  // ==================================================
-  //
-  // 原本：
-  //
-  //       •
-  //       •
-  //       •
-  //
-  //       ↑ 垂直貼在牆上
-  //
-  // 現在：
-  //
-  //       •  •  •  •  •
-  //
-  //       ↑ 水平躺在地板
-  //
-  // ==================================================
+dots.forEach((dot) => {
+  dotRouteGroup.add(dot);
+});
 
-  const dotRouteGroup = new THREE.Group();
+// ==================================================
+// ★ 點點躺到地板
+// ==================================================
+//
+// 原本點點是在 Target 的垂直平面
+//
+//     •
+//     •
+//     •
+//
+// 現在把它旋轉 90°
+// 讓它變成水平地板
+//
+//     •  •  •  •  •
+// __________________
+//        地板
+//
 
-  dots.forEach((dot) => {
+dotRouteGroup.rotation.x =
+  THREE.MathUtils.degToRad(90);
 
-    // 從原本 group 拿出來
-    group.remove(dot);
+// ↓ 控制點點離地高度
+// 先用這個數值測試
+dotRouteGroup.position.y = -0.55;
 
-    dotRouteGroup.add(dot);
-
-  });
-
-  // X 軸旋轉 90°
-  // 把原本的 XY 平面
-  // 轉成 XZ 水平面
-
-  dotRouteGroup.rotation.x =
-    THREE.MathUtils.degToRad(90);
-
-  // ★ 這個數值控制「離地高度」
-  //
-  // 越接近 0：
-  // 越靠近 target 高度
-  //
-  // 越負：
-  // 越往地板下降
-  //
-  // 先從 -0.55 開始測試
-
-  dotRouteGroup.position.y =
-    -0.55;
-
-  group.add(dotRouteGroup);
+group.add(dotRouteGroup);
 
   // ==================================================
   // ② 箭頭
