@@ -17,7 +17,7 @@ export const ROUTE = [
     targetIndex: 1,
     title: "已到正們口",
     instruction: "往前到電梯口，搭乘電梯",
-    direction: "left",
+    direction: "forward",
 
     dotCount: 14,
     dotSpacing: 0.13,

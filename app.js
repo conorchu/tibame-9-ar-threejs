@@ -330,7 +330,7 @@ if (step.direction === "forward") {
   // 現在往上提
   arrowGroup.position.set(
     0,
-    -0.35,
+    -0.15,
     0.07
   );
 
